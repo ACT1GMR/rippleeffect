@@ -1,5 +1,5 @@
 {
-  "name": "ripple-effects",
+  "name": "ripple-effects-extended",
   "version": "1.0.2",
   "description": "customizable ripple effect with one line of code",
   "browser": "dist/ripple.umd.min.js",

@@ -1,8 +1,18 @@
 # Ripple Effect
 
-You can add ripple effect to your website with just single line of code
-
+You can add ripple effect to your website with just single line of code.
 View [Demo](https://codepen.io/darkcris1/pen/zYoOWrO?editors=1010) Here
+# Extension Note
+
+Thanks to creator, This repo forked from [here](https://github.com/darkcris1/rippleeffect) and fix scrolling issue on mobile and touch screen devices.
+<br>
+To reproduce the mentioned problem you can add this effect to a list of nodes and scroll on them, what is happening is when you expected a scroll you will always encounter ripple effect on elements also(because you actually first touched and then scroll, and it will correspond it as a click event).
+<br>
+<br>
+This repo fixed issue by adding the touchScrollTimeout property.
+<br>
+<br>
+If you start scrolling it waits for certain timeout, if you scroll before timeout it will clear and don't fire and wait for another event else it will go on its own way of default behaviour.
 
 # DOCS
 
@@ -119,3 +129,4 @@ ripple(**element**, **option?**)
 | triggerExcept  | null                 | string? \| Element | add an exception of an element to be triggered           |
 | triggerOnChild | true                 | boolean?           | ripple will triggered if you click the children elements |
 | timing         | ease                 | string?            | animation timing function of css                         |
+| touchScrollTimeout| 100                 | number?            | [described here in details](#Extension Note)    

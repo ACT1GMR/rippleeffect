@@ -1,4 +1,6 @@
 import * as es from './util'
+import {func} from "prop-types";
+
 const defaultOption = {
   background: 'rgb(150,150,150)',
   opacity: 0.5,
@@ -6,9 +8,10 @@ const defaultOption = {
   duration: 700,
   timing: 'ease',
   outDuration: 800,
+  touchScrollTimeout: 100
 }
 
-const { tag, edit, offset, elementToArray, isSelfTag, styles } = es
+const {tag, edit, offset, elementToArray, isSelfTag, styles} = es
 
 // Inject styles into head
 tag('style', {
@@ -33,9 +36,12 @@ function ripple(elmnt = '_', option = {}) {
     triggerOnChild = true,
     triggerExcept = '_',
     outDuration,
+    touchScrollTimeout
   } = option
 
-  const isTouch = 'ontouchstart' in window
+  const isTouch = 'ontouchstart' in window;
+  const createRippleEvents = isTouch ? 'touchstart' : 'mousedown';
+  const removeRippleEvents = isTouch ? 'touchend touchcancel' : 'mouseleave mouseup'
 
   function createRipple(e) {
     const childExceptions = elementToArray(triggerExcept, this)
@@ -64,7 +70,7 @@ function ripple(elmnt = '_', option = {}) {
     // #############
 
     // Elements to append in
-    const { offsetWidth, offsetHeight } = this
+    const {offsetWidth, offsetHeight} = this
     const divParent = tag('div', {
       appendTo: this,
       className: 'ripleParent__',
@@ -91,28 +97,54 @@ function ripple(elmnt = '_', option = {}) {
         animation: `ripple__ ${duration}ms ${timing} both`,
       },
     })
-
-    const events = isTouch ? 'touchend touchcancel' : 'mouseleave mouseup'
-
-    function removeRipple() {
-      divParent.style.opacity = 0
-      setTimeout(() => this.removeChild(divParent), outDuration) // extend the duration to maintain element animation
-      edit(this).off(events, removeRipple)
-    }
-    edit(this).on(events, removeRipple) // Add a remove
+    return divParent;
   }
+
+  function removeRipple(divParent) {
+    if (divParent) {
+      divParent.style.opacity = 0
+      setTimeout(() => () => {
+        this.removeChild(divParent);
+        divParent = null;
+      }, outDuration) // extend the duration to maintain element animation
+    }
+    edit(this).off(removeRippleEvents, removeRipple)
+  }
+
   // Check if it is Element
   const elements = elementToArray(elmnt)
   // Add the event
 
-  const event = isTouch ? 'touchstart' : 'mousedown'
   elements.forEach((el) => {
     if (isSelfTag(el))
       return console.error(
         'Ripple is not allowed on self closing tag you need to wrap it',
       )
+    let removeDiv = null;
+    let touchStartTimeOutId = null;
+    let touchEndTimeOutId = null;
+    const timeout = isTouch ? touchScrollTimeout : 0;
 
-    edit(el).on(event, createRipple)
+    edit(el).on("touchmove", function () {
+      clearTimeout(touchStartTimeOutId);
+      clearTimeout(touchEndTimeOutId);
+    })
+    edit(el).on(createRippleEvents, function (e) {
+      clearTimeout(touchStartTimeOutId);
+      if (removeDiv) {
+        removeRipple.call(this, removeDiv);
+        removeDiv = null;
+      }
+      touchStartTimeOutId = setTimeout(() => {
+        removeDiv = createRipple.call(this, e);
+      }, timeout);
+    });
+    edit(el).on(removeRippleEvents, function (e) {
+      clearTimeout(touchEndTimeOutId);
+      touchEndTimeOutId = setTimeout(() => {
+        removeRipple.call(this, removeDiv);
+      }, timeout);
+    });
   })
   return {
     destroy: () => {
