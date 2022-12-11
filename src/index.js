@@ -103,9 +103,8 @@ function ripple(elmnt = '_', option = {}) {
   function removeRipple(divParent) {
     if (divParent) {
       divParent.style.opacity = 0
-      setTimeout(() => () => {
-        this.removeChild(divParent);
-        divParent = null;
+      setTimeout(() => {
+        divParent.remove();
       }, outDuration) // extend the duration to maintain element animation
     }
     edit(this).off(removeRippleEvents, removeRipple)
@@ -140,6 +139,7 @@ function ripple(elmnt = '_', option = {}) {
       }, timeout);
     });
     edit(el).on(removeRippleEvents, function (e) {
+      e.stopPropagation();
       clearTimeout(touchEndTimeOutId);
       touchEndTimeOutId = setTimeout(() => {
         removeRipple.call(this, removeDiv);
